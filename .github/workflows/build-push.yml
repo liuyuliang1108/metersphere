@@ -53,14 +53,15 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          DOCKER_IMAGE=${{ github.event.inputs.registryAddress }}/${{ github.event.inputs.dockerImageName }}
+          DOCKER_IMAGE=metersphere/metersphere
           DOCKER_PLATFORMS=linux/amd64,linux/arm64
-          TAG_NAME=${{ github.event.inputs.dockerImageTag }}
+          TAG_NAME=${{ env.GITHUB_REF_SLUG }}
           DOCKER_IMAGE_TAGS="--tag ${DOCKER_IMAGE}:${TAG_NAME} --tag ${DOCKER_IMAGE}:latest"
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${TAG_NAME}
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --build-arg VERSION=${TAG_NAME} \
+            --build-arg MS_VERSION=${{ env.GITHUB_REF_SLUG }}-${{ env.GITHUB_SHA_SHORT }} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
             ${DOCKER_IMAGE_TAGS} .

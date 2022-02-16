@@ -9,6 +9,7 @@ pipeline {
         IMAGE_NAME = 'metersphere'
         IMAGE_PREFIX = 'registry.cn-qingdao.aliyuncs.com/metersphere'
         TAG_NAME = 'test-build'
+        BRANCH_NAME = 'test-build'
     }
     stages {
         stage('Build/Test') {

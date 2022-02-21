@@ -489,7 +489,7 @@ export default {
     base_config: 'Base Config',
     base: {
       url: 'Website URL',
-      url_tip: 'example：http://localhost:8081',
+      url_tip: 'example：http://localhost:8087',
       url_is_null: 'The current site URL cannot be empty'
     },
     prometheus_config: 'Prometheus Host',

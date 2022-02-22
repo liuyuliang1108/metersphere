@@ -35,7 +35,7 @@ public abstract class JiraAbstractClient extends BaseClient {
     }
 
     public Map<String, JiraCreateMetadataResponse.Field> getCreateMetadata(String projectKey, String issueType) {
-        String url = getBaseUrl() + "/issue/createmeta?projectKeys={1}&issuetypeNames={2}&expand=projects.issuetypes.fields";
+        String url = getBaseUrl() + "/issue/createmeta?projectKeys={1}&issuetypeIds={2}&expand=projects.issuetypes.fields";
         ResponseEntity<String> response = null;
         Map<String, JiraCreateMetadataResponse.Field> fields = null;
         try {
@@ -173,6 +173,13 @@ public abstract class JiraAbstractClient extends BaseClient {
     public void auth() {
         try {
             restTemplate.exchange(getBaseUrl() + "/myself", HttpMethod.GET, getAuthHttpEntity(), String.class);
+        } catch (HttpClientErrorException e) {
+            if (e.getRawStatusCode() == 401) {
+                MSException.throwException(Translator.get("jira_auth_error"));
+            } else {
+                LogUtil.error(e.getMessage(), e);
+                MSException.throwException(e.getMessage());
+            }
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e);
             MSException.throwException(e.getMessage());

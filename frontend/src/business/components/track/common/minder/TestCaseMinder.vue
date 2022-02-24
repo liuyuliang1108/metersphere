@@ -269,14 +269,14 @@ name: "TestCaseMinder",
       }
       let pId = parent ? (parent.newId ? parent.newId : parent.id) : null;
 
-      if (!isModuleNodeData(parent)) {
+      if (parent && !isModuleNodeData(parent)) {
         this.throwError(this.$t('test_track.case.minder_not_module_tip', [data.text]));
       }
 
       let module = {
         id: data.id,
         name: data.text,
-        level: parent.level + 1,
+        level: parent ? parent.level + 1 : data.level,
         parentId: pId
       };
       data.level = module.level;
@@ -341,9 +341,12 @@ name: "TestCaseMinder",
       let isChange = false;
 
       let nodeId = parent ? (parent.newId ? parent.newId : parent.id) : "";
-      let priorityDefaultValue = (data.priority ? 'P' + data.priority - 1 :
-        (this.testCaseDefaultValue['用例等级'] ? this.testCaseDefaultValue['用例等级'] : 'P' + 0)
-      );
+      let priorityDefaultValue;
+      if (data.priority ) {
+        priorityDefaultValue = 'P' + (data.priority - 1);
+      } else {
+        priorityDefaultValue = this.testCaseDefaultValue['用例等级'] ? this.testCaseDefaultValue['用例等级'] : 'P' + 0;
+      }
 
       let testCase = {
         id: data.id,

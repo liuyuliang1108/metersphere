@@ -229,7 +229,7 @@ export default {
     edit_info: "編輯詳情",
     enable_scene: "原場景環境",
     variable_scene: "原場景变量",
-    reference_settings: "引用设置",
+    reference_settings: "场景设置",
     enable_scene_info: "啟用場景環境：當前步驟使用場景原始環境配置運行",
     environment: "運行環境",
     run_success: "執行成功",
@@ -241,7 +241,7 @@ export default {
     follow_success: "關註成功",
     cancel_follow_success: "取消關註成功",
     type: "類型",
-    type_of_num:"只能輸入數字類型",
+    type_of_num:"請輸入整數類型",
     validity_period:'有效期',
     please_select_a_deadline: "請選擇截止時間",
     relationship: {
@@ -2199,6 +2199,7 @@ export default {
       send_success: "評論成功！",
       cannot_edit: "無法編輯此評論！",
       cannot_delete: "無法刪除此評論！",
+      submit_description: "請先提交評論！",
     },
     review_view: {
       review: "評審",

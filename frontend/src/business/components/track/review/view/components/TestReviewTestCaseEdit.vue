@@ -35,9 +35,11 @@
                         :page-size="pageSize"
                         :page-total="pageTotal"
                         :total="total"
+                        :next-page-data="nextPageData"
+                        :pre-page-data="prePageData"
+                        :list="testCases"
                         @pre="handlePre"
-                        @next="handleNext"
-                        :list="testCases"/>
+                        @next="handleNext"/>
 
                       <el-divider direction="vertical"></el-divider>
 
@@ -59,7 +61,9 @@
                   <el-row style="margin-top: 0;">
                     <el-col>
                       <el-divider content-position="left">
-                        <el-button class="test-case-name" type="text" @click="openTestTestCase(testCase)">{{ testCase.name }}</el-button>
+                        <el-button class="test-case-name" type="text" @click="openTestTestCase(testCase)">
+                          {{ testCase.name }}
+                        </el-button>
                       </el-divider>
                     </el-col>
                   </el-row>
@@ -71,14 +75,16 @@
 
                     <el-row>
                       <el-col :span="7">
-                        <el-form-item :label="$t('test_track.case.module')" prop="nodePath" :label-width="formLabelWidth">
-                          {{testCase.nodePath}}
-                        </el-form-item >
+                        <el-form-item :label="$t('test_track.case.module')" prop="nodePath"
+                                      :label-width="formLabelWidth">
+                          {{ testCase.nodePath }}
+                        </el-form-item>
                       </el-col>
                       <el-col :span="7">
-                        <el-form-item :label="$t('test_track.plan.plan_project')" prop="projectName" :label-width="formLabelWidth">
-                          {{testCase.projectName}}
-                        </el-form-item >
+                        <el-form-item :label="$t('test_track.plan.plan_project')" prop="projectName"
+                                      :label-width="formLabelWidth">
+                          {{ testCase.projectName }}
+                        </el-form-item>
                       </el-col>
                     </el-row>
 
@@ -87,7 +93,8 @@
                              class="case-form">
                       <el-row>
                         <el-col :span="7" v-for="(item, index) in testCaseTemplate.customFields" :key="index">
-                          <el-form-item :label="item.system ? $t(systemNameMap[item.name]) : item.name" :prop="item.name"
+                          <el-form-item :label="item.system ? $t(systemNameMap[item.name]) : item.name"
+                                        :prop="item.name"
                                         :label-width="formLabelWidth">
                             <custom-filed-component :disabled="true" :data="item" :form="{}" prop="defaultValue"/>
                           </el-form-item>
@@ -95,18 +102,26 @@
                       </el-row>
                     </el-form>
 
-                    <form-rich-text-item :label-width="formLabelWidth" :disabled="true" :title="$t('test_track.case.prerequisite')"
+                    <form-rich-text-item :label-width="formLabelWidth" :disabled="true"
+                                         :title="$t('test_track.case.prerequisite')"
                                          :data="testCase" prop="prerequisite"/>
                     <step-change-item :disable="true" :label-width="formLabelWidth" :form="testCase"/>
-                    <form-rich-text-item :label-width="formLabelWidth" :disabled="true" v-if="testCase.stepModel === 'TEXT'" :title="$t('test_track.case.step_desc')" :data="testCase" prop="stepDescription"/>
-                    <form-rich-text-item  :label-width="formLabelWidth" :disabled="true" v-if="testCase.stepModel === 'TEXT'" :title="$t('test_track.case.expected_results')" :data="testCase" prop="expectedResult"/>
+                    <form-rich-text-item :label-width="formLabelWidth" :disabled="true"
+                                         v-if="testCase.stepModel === 'TEXT'" :title="$t('test_track.case.step_desc')"
+                                         :data="testCase" prop="stepDescription"/>
+                    <form-rich-text-item :label-width="formLabelWidth" :disabled="true"
+                                         v-if="testCase.stepModel === 'TEXT'"
+                                         :title="$t('test_track.case.expected_results')" :data="testCase"
+                                         prop="expectedResult"/>
 
-                    <test-case-step-item :label-width="formLabelWidth" :read-only="true" v-if="testCase.stepModel === 'STEP'" :form="testCase"/>
+                    <test-case-step-item :label-width="formLabelWidth" :read-only="true"
+                                         v-if="testCase.stepModel === 'STEP'" :form="testCase"/>
 
                     <el-form-item :label="$t('test_track.case.other_info')" :label-width="formLabelWidth">
                       <test-case-edit-other-info @openTest="openTest" :read-only="true" :is-test-plan="true"
-                                                 :project-id="projectId" :form="testCase" :case-id="testCase.caseId" ref="otherInfo"/>
-                    </el-form-item >
+                                                 :project-id="projectId" :form="testCase" :case-id="testCase.caseId"
+                                                 ref="otherInfo"/>
+                    </el-form-item>
 
                   </el-form>
                 </div>
@@ -122,7 +137,9 @@
                    style="margin-left:10px;font-size: 14px; cursor: pointer"/>
               </template>
               <review-comment :comments="comments" :case-id="testCase.caseId" :review-id="testCase.reviewId"
-                              @getComments="getComments" :review-status="testCase.reviewStatus" ref="reviewComment"/>
+                              :oldReviewStatus="oldReviewStatus"
+                              @getComments="getComments" :review-status="testCase.reviewStatus" ref="reviewComment"
+                              @saveCaseReview="saveCaseReview"/>
             </el-card>
           </el-col>
         </div>
@@ -198,7 +215,8 @@ export default {
       hasTapdId: false,
       hasZentaoId: false,
       formLabelWidth: '100px',
-      isCustomFiledActive: false
+      isCustomFiledActive: false,
+      oldReviewStatus: 'Pass'
     };
   },
   props: {
@@ -216,7 +234,9 @@ export default {
     pageSize: {
       type: Number,
       default: 1
-    }
+    },
+    nextPageData: Object,
+    prePageData: Object
   },
   computed: {
     projectId() {
@@ -273,16 +293,22 @@ export default {
       param.caseId = this.testCase.caseId;
       param.reviewId = this.testCase.reviewId;
       param.status = status;
-      //reviewComment
       if (status === 'UnPass') {
-        if (this.$refs.reviewComment.form.description.length > 0) {
+        if ((this.testCase.reviewStatus === 'Pass' || this.testCase.reviewStatus === 'Prepare') && this.$refs.reviewComment.form.description.length < 1) {
+          this.oldReviewStatus = this.testCase.reviewStatus;
+          this.testCase.reviewStatus = status;
+          this.$refs.reviewComment.inputLight();
+          this.$warning(this.$t('test_track.comment.description_is_null'));
+        } else if (this.$refs.reviewComment.form.description.length > 0) {
+          this.$refs.reviewComment.inputLight();
+          this.$warning(this.$t('test_track.comment.submit_description'));
+        } else if (this.comments.length > 0) {
+          this.oldReviewStatus = this.testCase.reviewStatus;
+          this.testCase.reviewStatus = status;
           this.$post('/test/review/case/edit', param, () => {
             this.$success(this.$t('commons.save_success'));
             this.updateTestCases(param);
             this.setReviewStatus(this.testCase.reviewId);
-            // 修改当前用例的评审状态
-            this.testCase.reviewStatus = status;
-            // 修改当前用例在整个用例列表的状态
             this.testCases[this.index].reviewStatus = status;
             if (this.index < this.testCases.length - 1) {
               this.handleNext();
@@ -297,16 +323,30 @@ export default {
           this.$success(this.$t('commons.save_success'));
           this.updateTestCases(param);
           this.setReviewStatus(this.testCase.reviewId);
-          // 修改当前用例的评审状态
           this.testCase.reviewStatus = status;
-          // 修改当前用例在整个用例列表的状态
           this.testCases[this.index].reviewStatus = status;
           if (this.index < this.testCases.length - 1) {
             this.handleNext();
           }
         });
       }
-
+    },
+    saveCaseReview() {
+      let param = {};
+      let status = this.testCase.reviewStatus;
+      param.id = this.testCase.id;
+      param.caseId = this.testCase.caseId;
+      param.reviewId = this.testCase.reviewId;
+      param.status = status;
+      this.$post('/test/review/case/edit', param, () => {
+        this.updateTestCases(param);
+        this.setReviewStatus(this.testCase.reviewId);
+        this.oldReviewStatus = status;
+        this.testCases[this.index].reviewStatus = status;
+        if (this.index < this.testCases.length - 1) {
+          this.handleNext();
+        }
+      });
     },
     updateTestCases(param) {
       for (let i = 0; i < this.testCases.length; i++) {
@@ -356,14 +396,10 @@ export default {
         this.isCustomFiledActive = true;
         this.testCase = item;
         if (!this.testCase.actualResult) {
-          // 如果没值,使用模板的默认值
           this.testCase.actualResult = this.testCaseTemplate.actualResult;
         }
-        // this.getRelatedTest();
         this.getComments(item);
         this.$refs.reviewComment.resetInputLight();
-        /*  this.initTest();*/
-        //this.getFileMetaData(data);
       })
 
     },
@@ -415,7 +451,7 @@ export default {
         id = this.testCase.caseId;
       }
       this.result = this.$get('/test/case/comment/list/' + id, res => {
-        if(res.data){
+        if (res.data) {
           this.comments = null;
           this.comments = res.data;
         }

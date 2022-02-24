@@ -22,7 +22,6 @@ import io.metersphere.base.mapper.ext.ExtTestCaseMapper;
 import io.metersphere.commons.constants.IssueRefType;
 import io.metersphere.commons.constants.TestCaseConstants;
 import io.metersphere.commons.constants.TestCaseReviewStatus;
-import io.metersphere.commons.constants.UserGroupType;
 import io.metersphere.commons.exception.MSException;
 import io.metersphere.commons.user.SessionUser;
 import io.metersphere.commons.utils.*;
@@ -123,10 +122,6 @@ public class TestCaseService {
     TestCaseFileMapper testCaseFileMapper;
     @Resource
     TestCaseTestMapper testCaseTestMapper;
-    @Resource
-    private GroupMapper groupMapper;
-    @Resource
-    private UserGroupMapper userGroupMapper;
     @Resource
     private LoadTestMapper loadTestMapper;
     @Resource
@@ -425,13 +420,7 @@ public class TestCaseService {
                     .andProjectIdEqualTo(testCase.getProjectId())
                     .andNodePathEqualTo(nodePath)
                     .andTypeEqualTo(testCase.getType())
-//                    .andMaintainerEqualTo(testCase.getMaintainer())
                     .andPriorityEqualTo(testCase.getPriority());
-//                    .andMethodEqualTo(testCase.getMethod());
-
-//            if (StringUtils.isNotBlank(testCase.getNodeId())) {
-//                criteria.andNodeIdEqualTo(testCase.getTestId());
-//            }
 
             if (StringUtils.isNotBlank(testCase.getTestId())) {
                 criteria.andTestIdEqualTo(testCase.getTestId());
@@ -555,9 +544,18 @@ public class TestCaseService {
         buildUserInfo(list);
         if (StringUtils.isNotBlank(request.getProjectId())) {
             buildProjectInfo(request.getProjectId(), list);
+        }else{
+            buildProjectInfoWidthoutProject(list);
         }
         list = this.parseStatus(list);
         return list;
+    }
+
+    private void buildProjectInfoWidthoutProject(List<TestCaseDTO> resList) {
+        resList.forEach(i -> {
+            Project project = projectMapper.selectByPrimaryKey(i.getProjectId());
+            i.setProjectName(project.getName());
+        });
     }
 
     public List<TestCaseDTO> publicListTestCase(QueryTestCaseRequest request) {
@@ -866,25 +864,12 @@ public class TestCaseService {
             testCaseNames.add(testCase.getName());
         }
 
-        if (!request.isIgnore()) {
-            QueryMemberRequest queryMemberRequest = new QueryMemberRequest();
-            queryMemberRequest.setProjectId(projectId);
-            userIds = userService.getProjectMemberList(queryMemberRequest)
-                    .stream()
-                    .map(User::getId)
-                    .collect(Collectors.toSet());
-        } else {
-            GroupExample groupExample = new GroupExample();
-            groupExample.createCriteria().andTypeIn(Arrays.asList(UserGroupType.WORKSPACE, UserGroupType.PROJECT));
-            List<Group> groups = groupMapper.selectByExample(groupExample);
-            List<String> groupIds = groups.stream().map(Group::getId).collect(Collectors.toList());
-
-            UserGroupExample userGroupExample = new UserGroupExample();
-            userGroupExample.createCriteria()
-                    .andGroupIdIn(groupIds)
-                    .andSourceIdEqualTo(project.getWorkspaceId());
-            userIds = userGroupMapper.selectByExample(userGroupExample).stream().map(UserGroup::getUserId).collect(Collectors.toSet());
-        }
+        QueryMemberRequest queryMemberRequest = new QueryMemberRequest();
+        queryMemberRequest.setProjectId(projectId);
+        userIds = userService.getProjectMemberList(queryMemberRequest)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
 
         try {
             //根据本地语言环境选择用哪种数据对象进行存放读取的数据
@@ -930,7 +915,7 @@ public class TestCaseService {
                 Integer num = importCreateNum.get();
                 Integer beforeInsertId = beforeImportCreateNum.get();
 
-                for (int i = testCases.size() - 1; i > - 1; i--) { // 反向遍历，保持和文件顺序一致
+                for (int i = testCases.size() - 1; i > -1; i--) { // 反向遍历，保持和文件顺序一致
                     TestCaseWithBLOBs testCase = testCases.get(i);
                     testCase.setId(UUID.randomUUID().toString());
                     testCase.setCreateUser(SessionUtils.getUserId());

@@ -23,7 +23,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,6 +46,8 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
 
     private Map<Integer, String> headMap;
     private Map<String,String> excelHeadToFieldNameDic = new HashMap<>();
+
+    private static NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
     /**
      * 每隔2000条存储数据库，然后清理list ，方便内存回收
@@ -511,7 +516,6 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
         }
     }
 
-
     public String getSteps(TestCaseExcelData data) {
         JSONArray jsonArray = new JSONArray();
 
@@ -573,8 +577,16 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
     private RowInfo parseIndexInRow(String row,int rowIndex) {
         RowInfo rowInfo = new RowInfo();
         String parseString = row;
+        if(isNumericzidai(parseString)){
+            Double aDouble = Double.valueOf(parseString);
+            parseString = numberFormat.format(aDouble);
+        }
         int index = -1;
         String rowMessage = row;
+        if(isNumericzidai(rowMessage)){
+            Double aDouble = Double.valueOf(rowMessage);
+            rowMessage = numberFormat.format(aDouble);
+        }
         String[] indexSplitCharArr = new String[]{")", "）", "]", "】", ".", ",", "，", "。"};
         if (StringUtils.startsWithAny(row, "(", "（", "[", "【")) {
             parseString = parseString.substring(1);
@@ -696,7 +708,9 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
             if (StringUtils.isEmpty(value)) {
                 value = "";
             }
-
+            if (field.getType().equalsIgnoreCase("multipleSelect")) {
+                value = modifyMultipleSelectPattern(value);
+            }
             JSONObject statusObj = new JSONObject();
             statusObj.put("id", UUID.randomUUID().toString());
             statusObj.put("name", field.getName());
@@ -706,6 +720,31 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
             customArr.add(statusObj);
         }
         return customArr.toJSONString();
+    }
+
+    /**
+     * 调整自定义多选下拉框格式，便于前端进行解析。
+     * 例如对于：下拉值1，下拉值2。将调整为:["下拉值1","下拉值2"]。
+     */
+    public String modifyMultipleSelectPattern(String values) {
+        try {
+            if (StringUtils.isNotBlank(values)) {
+                JSONArray array = JSONArray.parseArray(values);
+                return array.toJSONString();
+            }
+            return "[]";
+        } catch (Exception e) {
+            if (values != null) {
+                Stream<String> stringStream = Arrays.stream(values.split("[,;，；]"));  //当标签值以中英文的逗号和分号分隔时才能正确解析
+                List<String> valueList = stringStream.map(multip -> multip = "\"" + multip + "\"")
+                        .collect(Collectors.toList());
+                String modifiedValues = StringUtils.join(valueList, ",");
+                modifiedValues = "[" + modifiedValues + "]";
+                return modifiedValues;
+            } else {
+                return "[]";
+            }
+        }
     }
 
     /**
@@ -738,5 +777,14 @@ public class TestCaseNoModelDataListener extends AnalysisEventListener<Map<Integ
     class RowInfo {
         public int index;
         public String rowInfo;
+    }
+
+    public static boolean isNumericzidai(String str) {
+        Pattern pattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
+        Matcher isNum = pattern.matcher(str);
+        if (!isNum.matches()) {
+            return false;
+        }
+        return true;
     }
 }

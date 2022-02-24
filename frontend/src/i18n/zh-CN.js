@@ -229,7 +229,7 @@ export default {
     edit_info: "编辑详情",
     enable_scene: "原场景环境",
     variable_scene: "原场景变量",
-    reference_settings: "引用设置",
+    reference_settings: "场景设置",
     enable_scene_info: "启用场景环境：当前步骤使用场景原始环境配置运行",
     environment: "运行环境",
     run_success: "执行成功",
@@ -241,7 +241,7 @@ export default {
     follow_success: "关注成功",
     cancel_follow_success: "取消关注成功",
     type: "类型",
-    type_of_num:"只能输入数字类型",
+    type_of_num:"请输入整数类型",
     validity_period:'有效期',
     please_select_a_deadline: "请选择截止时间",
     relationship: {
@@ -2200,6 +2200,7 @@ export default {
       send_success: "评论成功！",
       cannot_edit: "无法编辑此评论！",
       cannot_delete: "无法删除此评论！",
+      submit_description: "请先提交评论！",
     },
     review_view: {
       review: "评审",

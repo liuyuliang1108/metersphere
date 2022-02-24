@@ -37,6 +37,7 @@ public interface ExtTestPlanTestCaseMapper {
 
     /**
      * 根据项目 ids 查询 TestPlanCaseDTO 列表
+     *
      * @param ids project id list
      * @return List<TestPlanCaseDTO>
      */
@@ -66,9 +67,9 @@ public interface ExtTestPlanTestCaseMapper {
 
     List<String> getIdsOrderByUpdateTime(@Param("planId") String planId);
 
-    Long getPreOrder(@Param("planId")String planId, @Param("baseOrder") Long baseOrder);
+    Long getPreOrder(@Param("planId") String planId, @Param("baseOrder") Long baseOrder);
 
-    Long getLastOrder(@Param("planId")String planId, @Param("baseOrder") Long baseOrder);
+    Long getLastOrder(@Param("planId") String planId, @Param("baseOrder") Long baseOrder);
 
     List<TestCase> getTestCaseWithNodeInfo(@Param("planId") String planId);
 }

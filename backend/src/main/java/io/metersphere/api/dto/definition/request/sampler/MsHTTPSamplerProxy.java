@@ -388,7 +388,7 @@ public class MsHTTPSamplerProxy extends MsTestElement {
                     url = this.getUrl();
                 }
                 if (isUrl()) {
-                    if (this.isCustomizeReq()) {
+                    if (this.isCustomizeReq() && StringUtils.isNotEmpty(this.getUrl())) {
                         url = this.getUrl();
                         sampler.setProperty("HTTPSampler.path", url);
                     }
@@ -475,7 +475,7 @@ public class MsHTTPSamplerProxy extends MsTestElement {
                 if (StringUtils.isNotEmpty(this.getPort()) && this.getPort().startsWith("${")) {
                     url = url.replace(this.getPort(), "10990");
                 }
-                if (url == null) {
+                if (StringUtils.isEmpty(url)) {
                     MSException.throwException("请重新选择环境");
                 }
                 URL urlObject = new URL(url);

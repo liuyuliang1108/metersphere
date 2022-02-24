@@ -267,6 +267,7 @@
             </foreach>
         </if>
     </select>
+
     <select id="selectIds" resultType="java.lang.String">
         select distinct test_plan_test_case.id as id
         from test_plan_test_case

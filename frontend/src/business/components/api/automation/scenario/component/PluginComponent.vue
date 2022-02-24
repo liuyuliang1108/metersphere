@@ -25,6 +25,7 @@
                 :value.sync="data"
                 @prefix-change="change"
                 @prefix-click="change"
+                @display-change="changeDisplay"
                 @prefix-visible-change="visibleChange"
               />
             </div>
@@ -198,6 +199,9 @@ export default {
     data: {
       handler: function () {
         Object.assign(this.request, this.data);
+        if (this.request.condition) {
+          this.changeDisplay(this.request.condition);
+        }
       },
       deep: true
     }
@@ -205,7 +209,15 @@ export default {
   methods: {
     blur(d) {
     },
-    change(d) {
+    change(fileName) {
+    },
+    changeDisplay(fileName) {
+      if (fileName === 'number of received messages') {
+        this.pluginForm.hidden(true, "conditionTime");
+      }
+      if (fileName === 'specified elapsed time (ms)') {
+        this.pluginForm.hidden(false, "conditionTime");
+      }
     },
     run() {
       if (this.isApiImport || this.request.isRefEnvironment) {
@@ -299,8 +311,11 @@ export default {
             }
             this.option.submitBtn = {show: false};
             this.request.clazzName = plugin.clazzName;
-            if (this.request && this.request.active && this.pluginForm && this.pluginForm.setValue instanceof Function) {
+            if (this.request && this.pluginForm && this.pluginForm.setValue instanceof Function) {
               this.pluginForm.setValue(this.request);
+            }
+            if (this.request.condition) {
+              this.changeDisplay(this.request.condition);
             }
           } else {
             this.request.enable = false;

@@ -25,8 +25,6 @@ public interface ExtTestCaseMapper {
 
     int moduleCount(@Param("request") QueryTestCaseRequest request);
 
-    List<TestCaseDTO> listIds(@Param("request") QueryTestCaseRequest request);
-
     List<TestCaseDTO> listByMethod(@Param("request") QueryTestCaseRequest request);
 
     List<TestCaseDTO> listByTestCaseIds(@Param("request") TestCaseBatchRequest request);
@@ -147,6 +145,5 @@ public interface ExtTestCaseMapper {
 
     int addLatestVersion(@Param("refId") String refId);
 
-    @MapKey("id")
-    Map<String, TestCase> getMaintainerMap(@Param("request") QueryTestCaseRequest request);
+    List<TestCase> getMaintainerMap(@Param("request") QueryTestCaseRequest request);
 }
